@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRUNO</title>
+
+<style>
+
+body{
+    margin:0;
+    height:100vh;
+    overflow:hidden;
+    background:linear-gradient(to bottom,#111,#1f1f1f);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-family:Arial,sans-serif;
+    color:white;
+}
+
+h1{
+    margin:0;
+    font-size:5rem;
+    letter-spacing:8px;
+}
+
+p{
+    opacity:0.8;
+}
+
+/* SCENE */
+.scene{
+    position:relative;
+    width:500px;
+    height:340px;
+    margin-top:30px;
+}
+
+/* CLOCHE */
+.bell{
+    position:absolute;
+    left:50%;
+    top:45%;
+    transform:translate(-50%,-50%);
+    font-size:9rem;
+}
+
+/* FACE */
+.face{
+    position:absolute;
+    top:65px;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+.eyes{
+    display:flex;
+    gap:18px;
+    justify-content:center;
+}
+
+.eye{
+    width:14px;
+    height:2px;
+    background:black;
+    border-radius:10px;
+    transition:0.2s;
+}
+
+/* yeux ouverts */
+.awake .eye{
+    height:14px;
+    border-radius:50%;
+}
+
+/* bouche */
+.mouth{
+    width:18px;
+    height:4px;
+    background:black;
+    border-radius:10px;
+    margin:10px auto 0;
+    transition:0.2s;
+}
+
+/* bouche ouverte */
+.scream .mouth{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+}
+
+/* AIMANT */
+.magnet{
+    position:absolute;
+    left:130px;
+    top:175px;
+    width:30px;
+    height:18px;
+    background:linear-gradient(#999,#666);
+    border-radius:12px;
+}
+
+/* animation aimant */
+.hit{
+    animation:hit 0.12s infinite alternate;
+}
+
+@keyframes hit{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(145px); }
+}
+
+/* shake cloche */
+.shake{
+    animation:shake 0.08s infinite;
+}
+
+@keyframes shake{
+    0%{ transform:translate(-50%,-50%) rotate(-8deg); }
+    50%{ transform:translate(-50%,-50%) rotate(8deg); }
+    100%{ transform:translate(-50%,-50%) rotate(-8deg); }
+}
+
+/* DRIIIING */
+.noise{
+    position:absolute;
+    color:#ff5555;
+    font-weight:bold;
+    font-size:2rem;
+    animation:pop 1s forwards;
+}
+
+@keyframes pop{
+    0%{transform:scale(0);opacity:1;}
+    100%{transform:scale(2);opacity:0;}
+}
+
+/* TEXTE FINAL */
+.screamText{
+    position:absolute;
+    top:30px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:3rem;
+    font-weight:bold;
+    color:#ff4444;
+}
+
+button{
+    margin-top:30px;
+    padding:15px 35px;
+    border:none;
+    border-radius:12px;
+    background:#ff4444;
+    color:white;
+    font-size:1.2rem;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>BRUNO</h1>
+<p>Plus fort qu’un expresso.</p>
+
+<div class="scene">
+
+    <div class="bell" id="bell">
+
+        🔔
+
+        <div class="face">
+            <div class="eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+            <div class="mouth"></div>
+        </div>
+
+    </div>
+
+    <div class="magnet" id="magnet"></div>
+
+</div>
+
+<button onclick="wakeUp()">ACTIVER BRUNO</button>
+
+<script>
+
+let count = 0;
+
+/* SON DRING */
+function dring(){
+    const audio = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
+    audio.volume = 1;
+    audio.play();
+}
+
+/* VOIX PLUS HUMAINE */
+function speak(){
+    const msg = new SpeechSynthesisUtterance("Réveillez-vous !");
+    
+    // voix humaine si dispo
+    const voices = speechSynthesis.getVoices();
+    const french = voices.find(v => v.lang.includes("fr"));
+
+    if(french){
+        msg.voice = french;
+    }
+
+    msg.lang = "fr-FR";
+    msg.rate = 0.95;
+    msg.pitch = 1;
+
+    speechSynthesis.speak(msg);
+}
+
+function wakeUp(){
+
+    count++;
+
+    const bell = document.getElementById("bell");
+    const magnet = document.getElementById("magnet");
+
+    bell.classList.add("awake");
+    bell.classList.add("shake");
+    magnet.classList.add("hit");
+
+    dring();
+
+    // DRIIING visuel
+    for(let i=0;i<12;i++){
+        const d=document.createElement("div");
+        d.className="noise";
+        d.innerText="DRIIIING";
+        d.style.left=Math.random()*window.innerWidth+"px";
+        d.style.top=Math.random()*window.innerHeight+"px";
+        document.body.appendChild(d);
+        setTimeout(()=>d.remove(),1000);
+    }
+
+    /* APRÈS 3 ACTIVATIONS */
+    if(count>=3){
+
+        bell.classList.add("scream");
+
+        const txt=document.createElement("div");
+        txt.className="screamText";
+        txt.innerText="RÉVEILLEZ-VOUS !!";
+        document.body.appendChild(txt);
+
+        speak();
+
+        // reset après cri
+        setTimeout(()=>{
+
+            txt.remove();
+
+            bell.classList.remove("scream");
+
+            count = 0; // 👈 permet de recommencer
+
+        },3000);
+    }
+
+    setTimeout(()=>{
+
+        bell.classList.remove("shake");
+        magnet.classList.remove("hit");
+        bell.classList.remove("awake");
+
+    },2500);
+}
+
+</script>
+
+</body>
+</html>
